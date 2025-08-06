@@ -6,12 +6,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 This React project uses environment variables stored in a **.env** file. 
 1. Copy the example file: `cp .env.example .env`
-2. Fill in your environment-specific values in the new **.env** file:
+2. Fill in your environment-specific values in the new **.env** file:\
    REACT_APP_RPC_URL=http://your.rpc.endpoint\
    REACT_APP_API_URL=http://your.api.endpoint\
-   All environment variables must start with **REACT_APP_** to be accessible in the React app (via **process.env.REACT_APP_***
+   All environment variables must start with **REACT_APP_** to be accessible in the React app (via **process.env.REACT_APP_**)
 3.  Do Not Commit Your **.env**\
-    Make sure your real .env file is not tracked by Git — it should be listed in **.gitignore**
+    Make sure your real **.env** file is not tracked by Git — it should be listed in **.gitignore**
 
 
 
