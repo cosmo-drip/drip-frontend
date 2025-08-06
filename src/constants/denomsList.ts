@@ -1,0 +1,1 @@
+export const denoms:string[] = ["uatom", "uosmo", "usd"]
