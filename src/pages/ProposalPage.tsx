@@ -13,6 +13,8 @@ import {useNetwork} from "../context/NetworkContext";
 import {denoms} from "../constants/DenomsList";
 import {downloadJsonFile} from "../utils/DownloadJson";
 import {useSendProposal} from "../hooks/UseSendProposal";
+import { createProposalJson } from "../utils/CreateProposalJson";
+import { buildProposalPayload } from "../utils/BuildProposalPayload";
 
 const ProposalPage = () => {
     const { selectedNetwork } = useNetwork();
@@ -26,60 +28,14 @@ const ProposalPage = () => {
             }}); //todo: add default values
     const { handleSubmit} = methods;
 
-    const downloadJson = (data: any) => {
-        const jsonData = {
-            messages: [
-                {
-                    "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
-                    authority: data.sender,
-                    recipient: data.contractRecipient,
-                    amount: [{denom: data.upperLimitAmount.denom, amount: data.upperLimitAmount.amount}],
-                },
-                {
-                    "@type": "/cosmwasm.wasm.v1.MsgInstantiateContract2",
-                    sender: data.sender,
-                    admin: data.sender,
-                    code_id: data.contractId,
-                    label: "",
-                    msg: {
-                        fixed_amount: { amount: data.amountUsd.amount, denom: data.amountUsd.denom },
-                        owner_address: data.recipient,
-                        contract_denom: data.amountUsd.denom, //todo what is contract_denom,
-                        twap_request_info: {
-                            pool_id: 308,
-                            base_asset: "uosmo", //todo what is base_asset,
-                            quote_asset: "ibc/9FF2B7A5F55038A7EE61F4FD6749D9A648B48E89830F2682B67B5DC158E2753C"
-                        },
-                    },
-                    funds: [],
-                    salt: data.salt.base64,
-                    fix_msg: false
-                },
-            ],
-            metadata: data.metadata,
-            deposit: `${data.deposit.amount}${data.deposit.denom}`,
-            title: data.title,
-            summary: data.summary,
-        }
+    const downloadJsonHandler = (data: any) => {
+        const jsonData = createProposalJson(data)
         downloadJsonFile(jsonData, "drip_proposal.json");
     }
+
     const sendProposalHandler = (data: any) => {
-        sendProposal({
-        contractRecipient: data.contractRecipient,
-        recipient: data.recipient,
-        upperLimitAmount: data.upperLimitAmount.amount,
-        upperLimitDenom: data.upperLimitAmount.denom,
-        fixedAmount: data.amountUsd.amount,
-        fixedDenom: data.amountUsd.denom,
-        codeId: data.contractId,
-        label: 'test label', //todo add label
-        salt: data.salt.string,
-        title: data.title,
-        summary: data.summary,
-        metadata: data.metadata,
-        depositAmount: data.deposit.amount,
-        depositDenom: data.deposit.denom,
-        });
+        const payload = buildProposalPayload(data);
+        sendProposal(payload);
     };
 
     return (
@@ -108,7 +64,7 @@ const ProposalPage = () => {
             </BorderBox>
 
             <div style={{display: "flex", justifyContent: "space-between", margin: "20px 0px", width: "90%"}}>
-                <Button name={"download"} text={"Download json file"} handler={handleSubmit(downloadJson)}/>
+                <Button name={"download"} text={"Download json file"} handler={handleSubmit(downloadJsonHandler)}/>
                 <Button name={"send"} text={"Send "} handler={handleSubmit(sendProposalHandler)}/>
             </div>
             </PageLayout>
