@@ -8,7 +8,7 @@ import { useKeplr } from './UseKeplr'
 import { toUtf8 } from "@cosmjs/encoding"
 import {useNetwork} from "../context/NetworkContext";
 
-interface CommunitySpendProposalInput {
+interface SendProposal {
     contractRecipient: string,
     recipient: string,
     upperLimitAmount: string,
@@ -30,7 +30,7 @@ export const useSendProposal = () => {
     const { selectedNetwork } = useNetwork();
     const { governanceAddress } = selectedNetwork
 
-    const sendProposal = async (input: CommunitySpendProposalInput) => {
+    const sendProposal = async (input: SendProposal) => {
 
         try {
             await connect()
