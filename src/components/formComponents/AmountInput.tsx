@@ -1,8 +1,6 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
 
-
-
 const AmountInput = ({name, label, placeholder, denoms}: {name: string, label: string, placeholder: string, denoms: string[]}) => {
     const { register, formState: {errors} } = useFormContext();
     const amountError = (errors[name] as any)?.amount?.message;

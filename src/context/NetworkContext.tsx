@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { NetworkConfig, networks } from "../constants/networks"
+import { NetworkConfig, networks } from "../constants/Networks"
 
 type NetworkContextType = {
     selectedNetwork: NetworkConfig;

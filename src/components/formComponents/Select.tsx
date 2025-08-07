@@ -1,7 +1,6 @@
 import React from 'react';
 import {useFormContext} from "react-hook-form";
 
-
 const Select = ({name, label, values, required}: {name: string, label: string, values: string[], required?: boolean}) => {
     const {register, formState: {errors}} = useFormContext();
 

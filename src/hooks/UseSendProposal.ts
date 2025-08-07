@@ -4,7 +4,7 @@ import { MsgCommunityPoolSpend } from "cosmjs-types/cosmos/distribution/v1beta1/
 import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1/tx"
 import { MsgInstantiateContract2 } from "cosmjs-types/cosmwasm/wasm/v1/tx"
 import { Any } from "cosmjs-types/google/protobuf/any"
-import { useKeplr } from './useKeplr'
+import { useKeplr } from './UseKeplr'
 import { toUtf8 } from "@cosmjs/encoding"
 import {useNetwork} from "../context/NetworkContext";
 
@@ -25,13 +25,13 @@ interface CommunitySpendProposalInput {
     depositDenom: string,
 }
 
-export const useKeplrSendCommunitySpend = () => {
+export const useSendProposal = () => {
     const { address, connect } = useKeplr()
     const { selectedNetwork } = useNetwork();
     const { governanceAddress } = selectedNetwork
 
-    const sendCommunitySpend = async (input: CommunitySpendProposalInput) => {
-        console.log(input)
+    const sendProposal = async (input: CommunitySpendProposalInput) => {
+
         try {
             await connect()
 
@@ -134,6 +134,6 @@ export const useKeplrSendCommunitySpend = () => {
     }
 
     return {
-        sendCommunitySpend,
+        sendProposal,
     }
 }

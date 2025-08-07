@@ -1,7 +1,6 @@
 import React from 'react';
 import {useFormContext} from "react-hook-form";
 
-
 const Checkbox = ({name, label}: {name: string, label: string}) => {
     const { register } = useFormContext();
 
