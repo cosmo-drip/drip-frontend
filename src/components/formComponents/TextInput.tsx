@@ -1,7 +1,6 @@
 import React from 'react';
 import {useFormContext} from "react-hook-form";
 
-
 const TextInput = ({name, label, placeholder, required = true, disabled}: {name: string, label: string, placeholder: string, required?: boolean, disabled?: boolean}) => {
     const {register, formState: {errors}} = useFormContext();
     return (

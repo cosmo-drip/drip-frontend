@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import useCalculateAddress from "../hooks/useCalculateAddress";
+import useCalculateAddress from "../hooks/UseCalculateAddress";
 
 type EncodingType = "string" | "hex" | "base64";
 

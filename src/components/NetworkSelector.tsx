@@ -1,5 +1,5 @@
 import React, {useEffect} from "react";
-import {networks} from "../constants/networks";
+import {networks} from "../constants/Networks";
 import { useNetwork } from "../context/NetworkContext";
 import {useFormContext} from "react-hook-form";
 

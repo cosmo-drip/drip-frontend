@@ -5,20 +5,19 @@ import {useForm, FormProvider} from "react-hook-form";
 import TextInput from "../components/formComponents/TextInput";
 import AmountInput from "../components/formComponents/AmountInput";
 import Select from "../components/formComponents/Select";
-// import Checkbox from "../components/formComponents/Checkbox";
 import Button from "../components/formComponents/Button";
 import SaltBlock from "../components/SaltBlock";
 import BorderBox from "../components/layouts/BorderBox";
 import PageLayout from "../components/layouts/PageLayout";
 import {useNetwork} from "../context/NetworkContext";
-import {denoms} from "../constants/denomsList";
-import {downloadJsonFile} from "../utils/downloadJson";
-import {useKeplrSendCommunitySpend} from "../hooks/useCommunitySpendProposal";
+import {denoms} from "../constants/DenomsList";
+import {downloadJsonFile} from "../utils/DownloadJson";
+import {useSendProposal} from "../hooks/UseSendProposal";
 
 const ProposalPage = () => {
     const { selectedNetwork } = useNetwork();
     const {denom, contracts } = selectedNetwork
-    const { sendCommunitySpend } = useKeplrSendCommunitySpend()
+    const { sendProposal } = useSendProposal()
 
     const methods = useForm({
         defaultValues:
@@ -61,12 +60,11 @@ const ProposalPage = () => {
             deposit: `${data.deposit.amount}${data.deposit.denom}`,
             title: data.title,
             summary: data.summary,
-            expedited: data.expedited
         }
         downloadJsonFile(jsonData, "drip_proposal.json");
     }
-    const sendProposal = (data: any) => {
-        sendCommunitySpend({
+    const sendProposalHandler = (data: any) => {
+        sendProposal({
         contractRecipient: data.contractRecipient,
         recipient: data.recipient,
         upperLimitAmount: data.upperLimitAmount.amount,
@@ -94,7 +92,6 @@ const ProposalPage = () => {
                 <TextInput name={"summary"} label={"Summary"} placeholder={"Enter summary"}/>
                 <AmountInput name={"deposit"} label={"Deposit"} placeholder={"Enter deposit"} denoms={[denom]}/>
                 <TextInput name={"metadata"} label={"Metadata"} placeholder={"ipfs://CID"}/>
-                {/*<Checkbox name={"expedited"} label={"Expedited"}/>*/}
             </BorderBox>
 
             <BorderBox title={"Community Pool Spend"}>
@@ -112,7 +109,7 @@ const ProposalPage = () => {
 
             <div style={{display: "flex", justifyContent: "space-between", margin: "20px 0px", width: "90%"}}>
                 <Button name={"download"} text={"Download json file"} handler={handleSubmit(downloadJson)}/>
-                <Button name={"send"} text={"Send "} handler={handleSubmit(sendProposal)}/>
+                <Button name={"send"} text={"Send "} handler={handleSubmit(sendProposalHandler)}/>
             </div>
             </PageLayout>
         </FormProvider>
