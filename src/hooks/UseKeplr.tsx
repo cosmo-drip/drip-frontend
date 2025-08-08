@@ -11,7 +11,7 @@ interface UseKeplrResult {
     connect: () => Promise<void>
     error: string | null
     isKeplrAvailable: boolean
-    submitCommunitySpendProposal?: () => Promise<void>
+    disconnect: () => void
 }
 
 const CHAIN_ID = 'testdrip-1'
@@ -74,37 +74,63 @@ export const useKeplr = (): UseKeplrResult => {
     const [isKeplrAvailable, setIsKeplrAvailable] = useState(false)
 
     useEffect(() => {
-        if (window.keplr) {
-            setIsKeplrAvailable(true)
-        } else {
-            setError('Keplr is not found. Make sure the extension is installed.')
-        }
-    }, [])
+        const init = async () => {
+            if (!window.keplr) {
+                setError('Keplr is not found. Make sure the extension is installed.');
+                return;
+            }
+            setIsKeplrAvailable(true);
+
+            const savedAddress = localStorage.getItem('keplr_address');
+            if (savedAddress) {
+                try {
+                    await window.keplr.enable(CHAIN_ID);
+                    const key = await window.keplr.getKey(CHAIN_ID);
+                    setAddress(key.bech32Address);
+                    setConnected(true);
+                    setError(null);
+                } catch (err: any) {
+                    console.warn('Auto-connect failed:', err.message);
+                    disconnect();
+                }
+            }
+        };
+
+        init();
+    }, []);
 
     const connect = async () => {
         try {
-            if (!window.keplr) throw new Error('Keplr is not found')
+            if (!window.keplr) throw new Error('Keplr is not found');
 
             if (window.keplr.experimentalSuggestChain) {
                 try {
-                    await window.keplr.experimentalSuggestChain(CHAIN_INFO)
+                    await window.keplr.experimentalSuggestChain(CHAIN_INFO);
                 } catch (suggestErr: any) {
-                    console.warn('Failed to suggest custom network:', suggestErr.message)
+                    console.warn('Failed to suggest custom network:', suggestErr.message);
                 }
             }
 
-            await window.keplr.enable(CHAIN_ID)
+            await window.keplr.enable(CHAIN_ID);
+            const key = await window.keplr.getKey(CHAIN_ID);
 
-            const key = await window.keplr.getKey(CHAIN_ID)
-            setAddress(key.bech32Address)
-            setConnected(true)
-            setError(null)
+            setAddress(key.bech32Address);
+            setConnected(true);
+            setError(null);
+            localStorage.setItem('keplr_address', key.bech32Address);
         } catch (err: any) {
-            setError(err.message || 'Error connecting to Keplr')
-            setConnected(false)
-            setAddress(null)
+            setError(err.message || 'Error connecting to Keplr');
+            setConnected(false);
+            setAddress(null);
         }
-    }
+    };
+
+    const disconnect = () => {
+        localStorage.removeItem('keplr_address');
+        setConnected(false);
+        setAddress(null);
+        setError(null);
+    };
 
     return {
         connected,
@@ -112,5 +138,6 @@ export const useKeplr = (): UseKeplrResult => {
         connect,
         error,
         isKeplrAvailable,
+        disconnect
     }
 }

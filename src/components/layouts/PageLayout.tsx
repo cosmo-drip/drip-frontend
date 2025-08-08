@@ -18,6 +18,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            position: 'relative',
         }}>
             {children}
         </div>
