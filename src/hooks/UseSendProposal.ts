@@ -28,18 +28,16 @@ interface SendProposal {
 export const useSendProposal = () => {
     const { address, connect } = useKeplr()
     const { selectedNetwork } = useNetwork();
-    const { governanceAddress } = selectedNetwork
+    const { governanceAddress, chainId } = selectedNetwork
 
     const sendProposal = async (input: SendProposal) => {
 
         try {
-            await connect()
-
             if (!window.keplr || !address)
                 throw new Error("Keplr is not found")
 
-            await window.keplr.enable("testdrip-1")
-            const offlineSigner = window.getOfflineSigner!("testdrip-1")
+            await window.keplr.enable(chainId)
+            const offlineSigner = window.getOfflineSigner!(chainId)
 
             const registryTypes: [string, GeneratedType][] = [
                 ["/cosmos.gov.v1.MsgSubmitProposal", MsgSubmitProposal as GeneratedType],
