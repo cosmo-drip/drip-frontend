@@ -6,7 +6,8 @@ import { MsgInstantiateContract2 } from "cosmjs-types/cosmwasm/wasm/v1/tx"
 import { Any } from "cosmjs-types/google/protobuf/any"
 import { useKeplr } from './UseKeplr'
 import { toUtf8 } from "@cosmjs/encoding"
-import {useNetwork} from "../context/NetworkContext";
+import { useNetwork } from "../context/NetworkContext";
+import { useModals } from "../context/ModalsContext";
 
 interface SendProposal {
     contractRecipient: string,
@@ -29,9 +30,11 @@ export const useSendProposal = () => {
     const { address, connect } = useKeplr()
     const { selectedNetwork } = useNetwork();
     const { governanceAddress, chainId } = selectedNetwork
+    const { showLoading, hideLoading, showError, showTxInfo } = useModals();
+
 
     const sendProposal = async (input: SendProposal) => {
-
+        showLoading()
         try {
             if (!window.keplr || !address)
                 throw new Error("Keplr is not found")
@@ -123,11 +126,16 @@ export const useSendProposal = () => {
             )
 
             console.log("Proposal has been sent:", result)
+            showTxInfo(result)
             if (result.code !== 0) {
-                throw new Error(result.rawLog || "Execution error")
+                console.warn("Transaction failed on chain:", result.rawLog);
+                return
             }
         } catch (err: any) {
             console.error("Error sending:", err.message)
+            showError(err.message)
+        } finally {
+            hideLoading();
         }
     }
 

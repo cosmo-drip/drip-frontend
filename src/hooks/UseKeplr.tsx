@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Window as KeplrWindow } from "@keplr-wallet/types";
+import {useModals} from "../context/ModalsContext";
 
 declare global {
     interface Window extends KeplrWindow {}
@@ -72,6 +73,7 @@ export const useKeplr = (): UseKeplrResult => {
     const [address, setAddress] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [isKeplrAvailable, setIsKeplrAvailable] = useState(false)
+    const {showError, hideError} = useModals()
 
     useEffect(() => {
         const init = async () => {
@@ -101,7 +103,7 @@ export const useKeplr = (): UseKeplrResult => {
 
     const connect = async () => {
         try {
-            if (!window.keplr) throw new Error('Keplr is not found');
+            if (!window.keplr) throw new Error('Keplr is not found. Make sure the extension is installed.');
 
             if (window.keplr.experimentalSuggestChain) {
                 try {
@@ -117,11 +119,13 @@ export const useKeplr = (): UseKeplrResult => {
             setAddress(key.bech32Address);
             setConnected(true);
             setError(null);
+            hideError()
             localStorage.setItem('keplr_address', key.bech32Address);
         } catch (err: any) {
             setError(err.message || 'Error connecting to Keplr');
             setConnected(false);
             setAddress(null);
+            showError(err.message)
         }
     };
 
