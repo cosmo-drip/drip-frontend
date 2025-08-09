@@ -5,6 +5,7 @@ import { Buffer } from "buffer";
 import axios from "axios";
 import { useNetwork } from "../context/NetworkContext";
 import useDebounce from "./UseDebounce";
+import { useModals } from "../context/ModalsContext";
 
 const UseCalculateAddress = () => {
     const { control, setValue } = useFormContext();
@@ -13,6 +14,7 @@ const UseCalculateAddress = () => {
     const contractId = useWatch({ control, name: "contractId" });
     const base64Salt = useWatch({ control, name: "salt.base64" });
     const [checksumHex, setChecksumHex] = useState<string | null>(null);
+    const { showLoading, hideLoading } = useModals();
 
     const debouncedBase64Salt = useDebounce(base64Salt, 1000);
 
@@ -26,6 +28,7 @@ const UseCalculateAddress = () => {
 
         const loadChecksum = async () => {
             try {
+                showLoading()
                 const response = await axios.get(
                     `${api}/cosmwasm/wasm/v1/code/${contractId}`
                 );
@@ -36,6 +39,10 @@ const UseCalculateAddress = () => {
                 setChecksumHex(null);
                 setValue("contractRecipient", "");
                 setValue("contractExists", false)
+                hideLoading()
+            } finally {
+                hideLoading()
+
             }
         };
 
@@ -62,6 +69,7 @@ const UseCalculateAddress = () => {
 
             const checkIfExists = async () => {
                 setValue("contractExists", false);
+                showLoading()
                 try {
                     const res = await axios.get(`${api}/cosmwasm/wasm/v1/contract/${address}`);
                     if (res.status === 200 && res.data.contract_info) {
@@ -69,15 +77,18 @@ const UseCalculateAddress = () => {
                     } else {
                         setValue("contractExists", false);
                     }
+                    hideLoading()
                 } catch (err: any) {
                     if (axios.isAxiosError(err) && err.response && err.response.status === 404) {
                         setValue("contractExists", false);
                     } else {
                         console.error("Error checking contract existence:", err);
                     }
+                    hideLoading()
+                } finally {
+                    hideLoading()
                 }
             };
-
             checkIfExists();
 
         } catch (e) {

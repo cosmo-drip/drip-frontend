@@ -65,7 +65,7 @@ const ProposalPage = () => {
 
             <div style={{display: "flex", justifyContent: "space-between", margin: "20px 0px", width: "90%"}}>
                 <Button name={"download"} text={"Download json file"} handler={handleSubmit(downloadJsonHandler)}/>
-                <Button name={"send"} text={"Send "} handler={handleSubmit(sendProposalHandler)}/>
+                <Button name={"send"} text={"Send proposal"} handler={handleSubmit(sendProposalHandler)}/>
             </div>
             </PageLayout>
         </FormProvider>
