@@ -8,6 +8,7 @@ import TxModal from "./components/modals/TxModal";
 import ErrorModal from "./components/modals/ErrorModal";
 import {CopyTooltipProvider} from "./context/CopyTooltipContext";
 import CopyTooltip from "./components/CopyTooltip";
+import {KeplrProvider} from "./context/KeplrContext";
 
 function App() {
   return (
@@ -17,10 +18,12 @@ function App() {
                   <LoadingSpinner/>
                   <TxModal/>
                   <ErrorModal/>
-                  <div className="App">
-                      <ProposalPage/>
-                      <CopyTooltip />
-                  </div>
+                  <KeplrProvider>
+                      <div className="App">
+                          <ProposalPage/>
+                          <CopyTooltip />
+                      </div>
+                  </KeplrProvider>
               </ModalsProvider>
           </NetworkProvider>
       </CopyTooltipProvider>
