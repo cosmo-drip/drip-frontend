@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Window as KeplrWindow } from "@keplr-wallet/types";
-import {useModals} from "../context/ModalsContext";
+import { useModals } from "./ModalsContext";
 
 declare global {
     interface Window extends KeplrWindow {}
 }
 
-interface UseKeplrResult {
-    connected: boolean
-    address: string | null
-    connect: () => Promise<void>
-    error: string | null
-    isKeplrAvailable: boolean
-    disconnect: () => void
+interface KeplrContextValue {
+    connected: boolean;
+    address: string | null;
+    connect: () => Promise<void>;
+    disconnect: () => void;
+    error: string | null;
+    isKeplrAvailable: boolean;
 }
 
-const CHAIN_ID = 'testdrip-1'
+const CHAIN_ID = "testdrip-1";
 const CHAIN_INFO = {
     "chainId": "testdrip-1",
     "chainName": "drip",
@@ -68,22 +68,24 @@ const CHAIN_INFO = {
     "features": []
 }
 
-export const useKeplr = (): UseKeplrResult => {
-    const [connected, setConnected] = useState(false)
-    const [address, setAddress] = useState<string | null>(null)
-    const [error, setError] = useState<string | null>(null)
-    const [isKeplrAvailable, setIsKeplrAvailable] = useState(false)
-    const {showError, hideError} = useModals()
+const KeplrContext = createContext<KeplrContextValue | undefined>(undefined);
+
+export const KeplrProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [connected, setConnected] = useState(false);
+    const [address, setAddress] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isKeplrAvailable, setIsKeplrAvailable] = useState(false);
+    const { showError, hideError } = useModals();
 
     useEffect(() => {
         const init = async () => {
             if (!window.keplr) {
-                setError('Keplr is not found. Make sure the extension is installed.');
+                setError("Keplr is not found. Make sure the extension is installed.");
                 return;
             }
             setIsKeplrAvailable(true);
 
-            const savedAddress = localStorage.getItem('keplr_address');
+            const savedAddress = localStorage.getItem("keplr_address");
             if (savedAddress) {
                 try {
                     await window.keplr.enable(CHAIN_ID);
@@ -92,7 +94,7 @@ export const useKeplr = (): UseKeplrResult => {
                     setConnected(true);
                     setError(null);
                 } catch (err: any) {
-                    console.warn('Auto-connect failed:', err.message);
+                    console.warn("Auto-connect failed:", err.message);
                     disconnect();
                 }
             }
@@ -103,13 +105,14 @@ export const useKeplr = (): UseKeplrResult => {
 
     const connect = async () => {
         try {
-            if (!window.keplr) throw new Error('Keplr is not found. Make sure the extension is installed.');
+            if (!window.keplr)
+                throw new Error("Keplr is not found. Make sure the extension is installed.");
 
             if (window.keplr.experimentalSuggestChain) {
                 try {
                     await window.keplr.experimentalSuggestChain(CHAIN_INFO);
                 } catch (suggestErr: any) {
-                    console.warn('Failed to suggest custom network:', suggestErr.message);
+                    console.warn("Failed to suggest custom network:", suggestErr.message);
                 }
             }
 
@@ -119,29 +122,36 @@ export const useKeplr = (): UseKeplrResult => {
             setAddress(key.bech32Address);
             setConnected(true);
             setError(null);
-            hideError()
-            localStorage.setItem('keplr_address', key.bech32Address);
+            hideError();
+            localStorage.setItem("keplr_address", key.bech32Address);
         } catch (err: any) {
-            setError(err.message || 'Error connecting to Keplr');
+            setError(err.message || "Error connecting to Keplr");
             setConnected(false);
             setAddress(null);
-            showError(err.message)
+            showError(err.message);
         }
     };
 
     const disconnect = () => {
-        localStorage.removeItem('keplr_address');
+        localStorage.removeItem("keplr_address");
         setConnected(false);
         setAddress(null);
         setError(null);
     };
 
-    return {
-        connected,
-        address,
-        connect,
-        error,
-        isKeplrAvailable,
-        disconnect
+    return (
+        <KeplrContext.Provider
+            value={{ connected, address, connect, disconnect, error, isKeplrAvailable }}
+        >
+            {children}
+        </KeplrContext.Provider>
+    );
+};
+
+export const useKeplrContext = () => {
+    const context = useContext(KeplrContext);
+    if (!context) {
+        throw new Error("useKeplrContext must be used within a KeplrProvider");
     }
-}
+    return context;
+};

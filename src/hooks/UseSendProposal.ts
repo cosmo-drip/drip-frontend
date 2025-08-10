@@ -4,10 +4,10 @@ import { MsgCommunityPoolSpend } from "cosmjs-types/cosmos/distribution/v1beta1/
 import { MsgSubmitProposal } from "cosmjs-types/cosmos/gov/v1/tx"
 import { MsgInstantiateContract2 } from "cosmjs-types/cosmwasm/wasm/v1/tx"
 import { Any } from "cosmjs-types/google/protobuf/any"
-import { useKeplr } from './UseKeplr'
 import { toUtf8 } from "@cosmjs/encoding"
 import { useNetwork } from "../context/NetworkContext";
 import { useModals } from "../context/ModalsContext";
+import {useKeplrContext} from "../context/KeplrContext";
 
 interface SendProposal {
     contractRecipient: string,
@@ -27,7 +27,7 @@ interface SendProposal {
 }
 
 export const useSendProposal = () => {
-    const { address, connect } = useKeplr()
+    const { address, connected } = useKeplrContext();
     const { selectedNetwork } = useNetwork();
     const { governanceAddress, chainId } = selectedNetwork
     const { showLoading, hideLoading, showError, showTxInfo } = useModals();
@@ -36,8 +36,10 @@ export const useSendProposal = () => {
     const sendProposal = async (input: SendProposal) => {
         showLoading()
         try {
-            if (!window.keplr || !address)
-                throw new Error("Keplr is not found")
+            if (!window.keplr)
+                throw new Error("Keplr is not found. Make sure the extension is installed")
+            if (!connected || !address)
+                throw new Error("Keplr is not connected")
 
             await window.keplr.enable(chainId)
             const offlineSigner = window.getOfflineSigner!(chainId)

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { useKeplr } from "../hooks/UseKeplr";
 import keplrIcon from "../assets/icons/Keplr_icon_ver.1.3_2.svg";
 import Button from "./formComponents/Button";
 import {useCopyTooltip} from "../context/CopyTooltipContext";
+import {useKeplrContext} from "../context/KeplrContext";
 
 const KeplrWalletButton: React.FC = () => {
-    const { connected, address, connect, disconnect, error } = useKeplr();
+    const { connected, address, connect, disconnect } = useKeplrContext();
     const [isHovered, setIsHovered] = useState(false);
     const { showTooltip } = useCopyTooltip()
 
