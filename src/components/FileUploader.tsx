@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFormContext } from "react-hook-form";
-import {proposalSchema} from "../utils/ProposalSchema";
+import {proposalUploadSchema} from "../schemas/ProposalUploadSchema";
 
 const FileUploader = () => {
     const { setValue } = useFormContext();
@@ -22,7 +22,7 @@ const FileUploader = () => {
         try {
             const text = await file.text();
             const parsed = JSON.parse(text);
-            const validated = proposalSchema.parse(parsed)
+            const validated = proposalUploadSchema.parse(parsed)
             // reset(parsed);
             const msg = validated.messages[0];
             const parsedDeposit = parseDepositString(validated.deposit);
@@ -30,7 +30,6 @@ const FileUploader = () => {
             setValue("deposit.denom", parsedDeposit.denom);
             setValue("recipient", msg.recipient);
             setValue("sender", msg.authority);
-            // setValue("amount.quantity", parseInt(msg.amount[0].amount));
             setValue("upperLimitAmount.denom", msg.amount[0].denom);
             setValue("upperLimitAmount.amount", msg.amount[0].amount);
             setValue("metadata", validated.metadata);

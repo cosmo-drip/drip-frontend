@@ -16,6 +16,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "ajv": "^8.17.1",
     "assert": "^2.1.0",
     "axios": "^1.10.0",
     "buffer": "^6.0.3",

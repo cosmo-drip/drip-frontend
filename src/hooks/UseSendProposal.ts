@@ -8,6 +8,8 @@ import { toUtf8 } from "@cosmjs/encoding"
 import { useNetwork } from "../context/NetworkContext";
 import { useModals } from "../context/ModalsContext";
 import {useKeplrContext} from "../context/KeplrContext";
+import { ajv } from "../validation/SchemaValidators";
+import instantiateMsgSchema from "../schemas/InstantiateMsg.schema.json"
 
 interface SendProposal {
     contractRecipient: string,
@@ -32,6 +34,7 @@ export const useSendProposal = () => {
     const { governanceAddress, chainId } = selectedNetwork
     const { showLoading, hideLoading, showError, showTxInfo } = useModals();
 
+    const validateInstantiateMsg = ajv.compile(instantiateMsgSchema);
 
     const sendProposal = async (input: SendProposal) => {
         showLoading()
@@ -69,24 +72,43 @@ export const useSendProposal = () => {
                 ],
             })
 
+            const msgPayload = {
+                admin: address,
+                funding_expiration: {
+                    at_height: 1754800000
+                },
+                payment_initiator_addrs: [
+                    address,
+                ],
+                price_feeder_addr: address,
+                quote_asset_limit: {
+                    amount: "1000",
+                    denom: "uatom"
+                },
+                recipient_addr: address,
+                settlement_asset_limit: {
+                    amount: "10000",
+                    denom: "uatom"
+                },
+                withdrawal_ttl: {
+                    default_sec: 32629444,
+                    max_sec: 81188572
+                }
+            }
+
+            if (!validateInstantiateMsg(msgPayload)) {
+                console.error("Validation error", validateInstantiateMsg.errors);
+                showError("Wrong msg format");
+                hideLoading();
+                return;
+            }
+
             const instantiateMsg = MsgInstantiateContract2.fromPartial({
                 sender: governanceAddress,
                 admin: governanceAddress,
                 codeId: BigInt(input.codeId),
                 label: input.label,
-                msg: toUtf8(JSON.stringify({
-                    "fixed_amount": {
-                        "amount": input.fixedAmount,
-                        "denom": input.fixedDenom,
-                    },
-                    "owner_address": input.recipient,
-                    "contract_denom": "uatom",
-                    "twap_request_info": {
-                        "pool_id": 308,
-                        "base_asset": "uosmo",
-                        "quote_asset": "ibc/9FF2B7A5F55038A7EE61F4FD6749D9A648B48E89830F2682B67B5DC158E2753C",
-                    }
-                },)),
+                msg: toUtf8(JSON.stringify(msgPayload)),
                 funds: [],
                 salt: toUtf8(input.salt),
                 fixMsg: false,
@@ -104,7 +126,10 @@ export const useSendProposal = () => {
             const proposalMsg = MsgSubmitProposal.fromPartial({
                 messages: [instantiateMsgAny, spendMsgAny],
                 metadata: input.metadata,
-                initialDeposit: [{denom: input.depositDenom, amount: input.depositAmount}],
+                initialDeposit: [{
+                    denom: input.depositDenom.trim(),
+                    amount: String(input.depositAmount).trim(),
+                }],
                 title: input.title,
                 summary: input.summary,
                 proposer: address,
@@ -112,7 +137,7 @@ export const useSendProposal = () => {
 
             const fee = {
                 amount: coins(5000, "uatom"),
-                gas: "250000",
+                gas: "300000",
             }
 
             const result = await client.signAndBroadcast(

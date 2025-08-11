@@ -18,7 +18,7 @@ export const networks: NetworkConfig[] = [
         rpc: process.env.REACT_APP_RPC_URL!,
         api: process.env.REACT_APP_API_URL!,
         prefix: "cosmos",
-        contracts: ["11", "12", "13", "14", "15", "22"]
+        contracts: ["11", "12", "13", "14", "15", "22", "23"]
     },
     {
         name: "Drip Testnet2",
