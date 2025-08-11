@@ -135,22 +135,40 @@ export const useSendProposal = () => {
                 proposer: address,
             })
 
-            const fee = {
-                amount: coins(5000, "uatom"),
-                gas: "300000",
-            }
+            const result = await (async () => {
+                const gasEstimation = await client.simulate(
+                    address,
+                    [
+                        {
+                            typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
+                            value: proposalMsg,
+                        },
+                    ],
+                    "Submit proposal with MsgCommunityPoolSpend and Instantiate2"
+                );
 
-            const result = await client.signAndBroadcast(
-                address,
-                [
-                    {
-                        typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
-                        value: proposalMsg,
-                    },
-                ],
-                fee,
-                "Submit proposal with MsgCommunityPoolSpend amd Istantiate2"
-            )
+                const gas = Math.round(gasEstimation * 1.3);
+
+                const gasPrice = 0.025;
+                const feeAmount = Math.ceil(gas * gasPrice);
+
+                const fee = {
+                    amount: coins(feeAmount, "uatom"),
+                    gas: gas.toString(),
+                };
+
+                return await client.signAndBroadcast(
+                    address,
+                    [
+                        {
+                            typeUrl: "/cosmos.gov.v1.MsgSubmitProposal",
+                            value: proposalMsg,
+                        },
+                    ],
+                    fee,
+                    "Submit proposal with MsgCommunityPoolSpend and Instantiate2"
+                );
+            })();
 
             console.log("Proposal has been sent:", result)
             showTxInfo(result)
