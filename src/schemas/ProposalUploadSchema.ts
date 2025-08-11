@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const proposalSchema = z.object({
+export const proposalUploadSchema = z.object({
     messages: z.array(
         z.object({
             "@type": z.string().includes("/cosmos.distribution.v1beta1.MsgCommunityPoolSpend"),
