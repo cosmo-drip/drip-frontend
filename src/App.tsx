@@ -13,19 +13,19 @@ import {KeplrProvider} from "./context/KeplrContext";
 function App() {
   return (
       <CopyTooltipProvider>
-          <NetworkProvider>
-              <ModalsProvider>
+          <ModalsProvider>
+              <NetworkProvider>
                   <LoadingSpinner/>
                   <TxModal/>
                   <ErrorModal/>
                   <KeplrProvider>
-                      <div className="App">
-                          <ProposalPage/>
-                          <CopyTooltip />
-                      </div>
-                  </KeplrProvider>
-              </ModalsProvider>
-          </NetworkProvider>
+                  <div className="App">
+                      <ProposalPage/>
+                      <CopyTooltip />
+                  </div>
+              </KeplrProvider>
+              </NetworkProvider>
+          </ModalsProvider>
       </CopyTooltipProvider>
   );
 }

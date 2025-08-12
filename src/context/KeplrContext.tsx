@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Window as KeplrWindow } from "@keplr-wallet/types";
 import { useModals } from "./ModalsContext";
+import {useNetwork} from "./NetworkContext";
 
 declare global {
     interface Window extends KeplrWindow {}
@@ -15,59 +16,6 @@ interface KeplrContextValue {
     isKeplrAvailable: boolean;
 }
 
-const CHAIN_ID = "testdrip-1";
-const CHAIN_INFO = {
-    "chainId": "testdrip-1",
-    "chainName": "drip",
-    "rpc": process.env.REACT_APP_RPC_URL!,
-    "rest": process.env.REACT_APP_API_URL!,
-    "bip44": {
-        "coinType": 118
-    },
-    // "coinType": 118,
-    "bech32Config": {
-        "bech32PrefixAccAddr": "cosmos",
-        "bech32PrefixAccPub": "cosmospub",
-        "bech32PrefixValAddr": "cosmosvaloper",
-        "bech32PrefixValPub": "cosmosvaloperpub",
-        "bech32PrefixConsAddr": "cosmosvalcons",
-        "bech32PrefixConsPub": "cosmosvalconspub"
-    },
-    "currencies": [
-        {
-            "coinDenom": "ATOM",
-            "coinMinimalDenom": "uatom",
-            "coinDecimals": 6,
-            "coinGeckoId": "cosmos"
-        }
-    ],
-    "feeCurrencies": [
-        {
-            "coinDenom": "ATOM",
-            "coinMinimalDenom": "uatom",
-            "coinDecimals": 6,
-            "coinGeckoId": "cosmos",
-            "gasPriceStep": {
-                "low": 0.01,
-                "average": 0.025,
-                "high": 0.03
-            }
-        }
-    ],
-    // "gasPriceStep": {
-    //     "low": 0.01,
-    //     "average": 0.025,
-    //     "high": 0.03
-    // },
-    "stakeCurrency": {
-        "coinDenom": "ATOM",
-        "coinMinimalDenom": "uatom",
-        "coinDecimals": 6,
-        "coinGeckoId": "cosmos"
-    },
-    "features": []
-}
-
 const KeplrContext = createContext<KeplrContextValue | undefined>(undefined);
 
 export const KeplrProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -76,48 +24,87 @@ export const KeplrProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [error, setError] = useState<string | null>(null);
     const [isKeplrAvailable, setIsKeplrAvailable] = useState(false);
     const { showError, hideError } = useModals();
+    const { selectedNetwork } = useNetwork();
+
+
+    const getChainInfo = () => ({
+        chainId: selectedNetwork.chainId,
+        chainName: selectedNetwork.name,
+        rpc: selectedNetwork.rpc,
+        rest: selectedNetwork.api,
+        bip44: { coinType: 118 },
+        bech32Config: {
+            bech32PrefixAccAddr: selectedNetwork.prefix,
+            bech32PrefixAccPub: `${selectedNetwork.prefix}pub`,
+            bech32PrefixValAddr: `${selectedNetwork.prefix}valoper`,
+            bech32PrefixValPub: `${selectedNetwork.prefix}valoperpub`,
+            bech32PrefixConsAddr: `${selectedNetwork.prefix}valcons`,
+            bech32PrefixConsPub: `${selectedNetwork.prefix}valconspub`
+        },
+        currencies: [
+            {
+                coinDenom: selectedNetwork.denom?.toUpperCase() || "UNKNOWN",
+                coinMinimalDenom: selectedNetwork.denom || "",
+                coinDecimals: 6
+            }
+        ],
+        feeCurrencies: [
+            {
+                coinDenom: selectedNetwork.denom?.toUpperCase() || "UNKNOWN",
+                coinMinimalDenom: selectedNetwork.denom || "",
+                coinDecimals: 6,
+                gasPriceStep: { low: 0.01, average: 0.025, high: 0.03 }
+            }
+        ],
+        stakeCurrency: {
+            coinDenom: selectedNetwork.denom?.toUpperCase() || "UNKNOWN",
+            coinMinimalDenom: selectedNetwork.denom || "",
+            coinDecimals: 6
+        },
+        features: []
+    });
 
     useEffect(() => {
-        const init = async () => {
-            if (!window.keplr) {
-                setError("Keplr is not found. Make sure the extension is installed.");
-                return;
-            }
-            setIsKeplrAvailable(true);
+        if (!window.keplr) {
+            setError("Keplr is not found. Make sure the extension is installed.");
+            return;
+        }
+        setIsKeplrAvailable(true);
 
+        const autoReconnect = async () => {
             const savedAddress = localStorage.getItem("keplr_address");
-            if (savedAddress) {
-                try {
-                    await window.keplr.enable(CHAIN_ID);
-                    const key = await window.keplr.getKey(CHAIN_ID);
-                    setAddress(key.bech32Address);
-                    setConnected(true);
-                    setError(null);
-                } catch (err: any) {
-                    console.warn("Auto-connect failed:", err.message);
-                    disconnect();
+            if (!savedAddress) return;
+
+            try {
+                if (!window.keplr) {
+                    throw new Error("Keplr is not found. Make sure the extension is installed.");
                 }
+                await window.keplr.enable(selectedNetwork.chainId);
+                const key = await window.keplr.getKey(selectedNetwork.chainId);
+                setAddress(key.bech32Address);
+                setConnected(true);
+                setError(null);
+            } catch {
+                disconnect();
             }
         };
 
-        init();
-    }, []);
+        autoReconnect();
+    }, [selectedNetwork.chainId]);
 
     const connect = async () => {
         try {
             if (!window.keplr)
                 throw new Error("Keplr is not found. Make sure the extension is installed.");
 
+            const chainInfo = getChainInfo();
+
             if (window.keplr.experimentalSuggestChain) {
-                try {
-                    await window.keplr.experimentalSuggestChain(CHAIN_INFO);
-                } catch (suggestErr: any) {
-                    console.warn("Failed to suggest custom network:", suggestErr.message);
-                }
+                await window.keplr.experimentalSuggestChain(chainInfo);
             }
 
-            await window.keplr.enable(CHAIN_ID);
-            const key = await window.keplr.getKey(CHAIN_ID);
+            await window.keplr.enable(selectedNetwork.chainId);
+            const key = await window.keplr.getKey(selectedNetwork.chainId);
 
             setAddress(key.bech32Address);
             setConnected(true);
