@@ -13,33 +13,45 @@ interface ProposalFormData {
 }
 
 export const createProposalJson = (data: ProposalFormData) => {
+    const msgPayload = {
+        admin: data.sender,
+        funding_expiration: {
+            at_height: 1754800000,
+        },
+        payment_initiator_addrs: [data.sender],
+        price_feeder_addr: data.sender,
+        quote_asset_limit: {
+            amount: data.upperLimitAmount.amount,
+            denom: data.upperLimitAmount.denom,
+        },
+        recipient_addr: data.recipient,
+        settlement_asset_limit: {
+            amount: data.amountUsd.amount,
+            denom: data.amountUsd.denom,
+        },
+        withdrawal_ttl: {
+            default_sec: 32629444,
+            max_sec: 81188572,
+        },
+    };
     return {
         messages: [
-            {
-                "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
-                authority: data.sender,
-                recipient: data.contractRecipient,
-                amount: [{denom: data.upperLimitAmount.denom, amount: data.upperLimitAmount.amount}],
-            },
             {
                 "@type": "/cosmwasm.wasm.v1.MsgInstantiateContract2",
                 sender: data.sender,
                 admin: data.sender,
                 code_id: data.contractId,
                 label: "DripTest",
-                msg: {
-                    fixed_amount: { amount: data.amountUsd.amount, denom: data.amountUsd.denom },
-                    owner_address: data.recipient,
-                    contract_denom: data.amountUsd.denom,
-                    twap_request_info: {
-                        pool_id: 308,
-                        base_asset: "uosmo",
-                        quote_asset: "ibc/9FF2B7A5F55038A7EE61F4FD6749D9A648B48E89830F2682B67B5DC158E2753C"
-                    },
-                },
+                msg: msgPayload,
                 funds: [],
                 salt: data.salt.base64,
                 fix_msg: false
+            },
+            {
+                "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+                authority: data.sender,
+                recipient: data.contractRecipient,
+                amount: [{denom: data.upperLimitAmount.denom, amount: data.upperLimitAmount.amount}],
             },
         ],
         metadata: data.metadata,
