@@ -18,7 +18,7 @@ import { buildProposalPayload } from "../utils/BuildProposalPayload";
 
 const ProposalPage = () => {
     const { selectedNetwork } = useNetwork();
-    const {denom, contracts } = selectedNetwork
+    const {denom = "", contracts } = selectedNetwork
     const { sendProposal } = useSendProposal()
 
     const methods = useForm({

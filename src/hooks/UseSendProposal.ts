@@ -31,9 +31,8 @@ interface SendProposal {
 export const useSendProposal = () => {
     const { address, connected } = useKeplrContext();
     const { selectedNetwork } = useNetwork();
-    const { governanceAddress, chainId } = selectedNetwork
+    const { governanceAddress, chainId, rpc, denom } = selectedNetwork
     const { showLoading, hideLoading, showError, showTxInfo } = useModals();
-
     const validateInstantiateMsg = ajv.compile(instantiateMsgSchema);
 
     const sendProposal = async (input: SendProposal) => {
@@ -56,7 +55,7 @@ export const useSendProposal = () => {
             const registry = new Registry(registryTypes)
 
             const client = await SigningStargateClient.connectWithSigner(
-                process.env.REACT_APP_RPC_URL!,
+                rpc,
                 offlineSigner,
                 { registry }
             )
@@ -153,7 +152,7 @@ export const useSendProposal = () => {
                 const feeAmount = Math.ceil(gas * gasPrice);
 
                 const fee = {
-                    amount: coins(feeAmount, "uatom"),
+                    amount: coins(feeAmount, denom || input.depositDenom),
                     gas: gas.toString(),
                 };
 
